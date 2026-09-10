@@ -11,13 +11,13 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Key Access Portal — Claim Your License Key" },
+      { title: "HYPERXSTORE — Claim Your License Key" },
       {
         name: "description",
         content:
           "Enter your access code to instantly claim your license key. One key per device, per batch.",
       },
-      { property: "og:title", content: "Key Access Portal — Claim Your License Key" },
+      { property: "og:title", content: "HYPERXSTORE — Claim Your License Key" },
       {
         property: "og:description",
         content: "Enter your access code to instantly claim your license key.",
@@ -52,6 +52,9 @@ function formatDate(value: string | null | undefined) {
     year: "numeric",
   });
 }
+
+const LOGO_URL =
+  "https://cdn.discordapp.com/icons/1521801218413035571/4cd6a3ea68c1397bd012caa1cde4124d.webp?size=240&quality=lossless";
 
 function Index() {
   const [code, setCode] = useState("");
@@ -108,12 +111,28 @@ function Index() {
 
       <div className="relative w-full max-w-lg">
         <header className="mb-9 text-center">
-          <div className="glow mx-auto mb-6 flex size-14 items-center justify-center rounded-2xl bg-primary/25">
-            <KeyRound className="size-7 text-accent" />
+          {/* LOGO + NAME */}
+          <div className="mb-6 flex items-center justify-center gap-3">
+            <div className="glow relative flex size-14 items-center justify-center overflow-hidden rounded-2xl bg-primary/25 ring-1 ring-primary/40">
+              <img
+                src={LOGO_URL}
+                alt="HYPERXSTORE logo"
+                className="size-full object-cover"
+                loading="eager"
+              />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              HYPER<span className="text-accent">X</span>STORE
+            </h1>
           </div>
-          <h1 className="text-gradient text-4xl font-bold tracking-tight sm:text-5xl">
+
+          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-primary/20">
+            <KeyRound className="size-6 text-accent" />
+          </div>
+
+          <h2 className="text-gradient text-3xl font-bold tracking-tight sm:text-4xl">
             Key Access Portal
-          </h1>
+          </h2>
           <p className="mt-3 text-sm text-muted-foreground">
             Enter your access code. One key is locked to your device per batch.
           </p>
