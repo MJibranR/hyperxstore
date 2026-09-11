@@ -249,7 +249,12 @@ function Index() {
                   rel="noreferrer noopener"
                   className="glow mt-6 flex h-13 w-full items-center justify-center gap-2.5 rounded-2xl bg-discord text-base font-semibold text-discord-foreground transition-transform hover:bg-primary active:scale-[0.99]"
                 >
-                  <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="size-5"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
                     <path d="M20.317 4.369A19.79 19.79 0 0 0 15.885 3c-.2.36-.43.845-.588 1.23a18.27 18.27 0 0 0-5.594 0A12.4 12.4 0 0 0 9.11 3 19.74 19.74 0 0 0 4.677 4.372C1.9 8.52 1.146 12.6 1.523 16.62a19.9 19.9 0 0 0 6.073 3.058c.47-.64.888-1.32 1.247-2.035a12.9 12.9 0 0 1-1.964-.94c.165-.12.326-.246.481-.375 3.79 1.75 7.885 1.75 11.63 0 .157.13.318.255.483.375-.627.37-1.286.686-1.968.94.36.714.777 1.394 1.247 2.034a19.86 19.86 0 0 0 6.075-3.057c.443-4.65-.756-8.694-3.51-12.25ZM8.68 14.18c-1.183 0-2.157-1.085-2.157-2.42 0-1.334.95-2.42 2.157-2.42 1.216 0 2.18 1.096 2.158 2.42 0 1.335-.95 2.42-2.158 2.42Zm6.64 0c-1.183 0-2.157-1.085-2.157-2.42 0-1.334.95-2.42 2.157-2.42 1.217 0 2.18 1.096 2.158 2.42 0 1.335-.94 2.42-2.158 2.42Z" />
                   </svg>
                   Join our Discord
