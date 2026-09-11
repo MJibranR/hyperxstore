@@ -252,7 +252,9 @@ function AdminAuth() {
           onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
           className="mt-5 w-full text-center text-xs text-muted-foreground underline-offset-4 hover:text-accent hover:underline"
         >
-          {mode === "signin" ? "No admin account yet? Create one" : "Already have an account? Sign in"}
+          {mode === "signin"
+            ? "No admin account yet? Create one"
+            : "Already have an account? Sign in"}
         </button>
       </form>
     </main>
@@ -315,13 +317,19 @@ function AdminDashboard() {
 
       <Tabs defaultValue="keys">
         <TabsList className="glass mb-6 h-auto flex-wrap gap-1 rounded-2xl p-1.5">
-          <TabsTrigger value="codes" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary">
+          <TabsTrigger
+            value="codes"
+            className="rounded-xl px-4 py-2 data-[state=active]:bg-primary"
+          >
             <BadgeCheck className="size-4" /> Login codes
           </TabsTrigger>
           <TabsTrigger value="keys" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary">
             <KeyRound className="size-4" /> Keys
           </TabsTrigger>
-          <TabsTrigger value="claims" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary">
+          <TabsTrigger
+            value="claims"
+            className="rounded-xl px-4 py-2 data-[state=active]:bg-primary"
+          >
             <ListFilter className="size-4" /> Claims log
           </TabsTrigger>
           <TabsTrigger
