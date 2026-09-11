@@ -1,8 +1,20 @@
 /**
- * Device fingerprint (HWID) generation.
- * Purely computed at runtime from device characteristics — never persisted in
- * localStorage. The resulting hash is only ever sent to the server.
+ * Stable device identifier (HWID).
+ *
+ * Two layers:
+ *  1. A long-lived first-party cookie holding the device id, so the SAME device
+ *     always presents the SAME id across browser restarts.
+ *  2. A fingerprint computed only from characteristics that do NOT change over
+ *     time (no browser version, no zoom level, no timezone offset, no canvas
+ *     pixel dump) — used to derive the id the first time, and as a fallback if
+ *     cookies are unavailable.
+ *
+ * No critical data lives in localStorage; the cookie only holds the device id
+ * which is also what gets sent to the server anyway.
  */
+
+const COOKIE_NAME = "hx_did";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365 * 5; // 5 years
 
 const PROBE_FONTS = [
   "Arial",
@@ -26,27 +38,50 @@ const PROBE_FONTS = [
   "Ubuntu",
 ];
 
-function canvasSignature(): string {
+function readCookie(name: string): string | null {
   try {
-    const canvas = document.createElement("canvas");
-    canvas.width = 260;
-    canvas.height = 60;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return "no-2d";
-    ctx.textBaseline = "top";
-    ctx.font = "16px 'Arial'";
-    ctx.fillStyle = "#f0f";
-    ctx.fillRect(0, 0, 120, 24);
-    ctx.fillStyle = "#2d1b69";
-    ctx.fillText("hwid::\u26a1\ud83d\udd11 0123456789", 4, 6);
-    ctx.strokeStyle = "rgba(120,60,220,0.7)";
-    ctx.beginPath();
-    ctx.arc(60, 40, 18, 0, Math.PI * 2, true);
-    ctx.stroke();
-    return canvas.toDataURL();
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return match?.[1] ? decodeURIComponent(match[1]) : null;
   } catch {
-    return "canvas-error";
+    return null;
   }
+}
+
+function writeCookie(name: string, value: string) {
+  try {
+    const secure = location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+  } catch {
+    /* cookies blocked — fingerprint fallback still works */
+  }
+}
+
+/** Browser family + OS family only: survives version updates. */
+function platformSignature(): string {
+  const ua = navigator.userAgent;
+  const family = /Edg\//.test(ua)
+    ? "edge"
+    : /OPR\//.test(ua)
+      ? "opera"
+      : /Firefox\//.test(ua)
+        ? "firefox"
+        : /Chrome\//.test(ua)
+          ? "chrome"
+          : /Safari\//.test(ua)
+            ? "safari"
+            : "other";
+  const os = /Windows/.test(ua)
+    ? "win"
+    : /Android/.test(ua)
+      ? "android"
+      : /(iPhone|iPad|iPod)/.test(ua)
+        ? "ios"
+        : /Mac OS X/.test(ua)
+          ? "mac"
+          : /Linux/.test(ua)
+            ? "linux"
+            : "other";
+  return `${family}|${os}`;
 }
 
 function webglSignature(): string {
@@ -72,11 +107,10 @@ function fontSignature(): string {
     const ctx = canvas.getContext("2d");
     if (!ctx) return "no-fonts";
     const sample = "mmmmmmmmmmlli WWW@#";
-    const baseline = PROBE_FONTS.map((font) => {
+    return PROBE_FONTS.map((font) => {
       ctx.font = `72px '${font}', monospace`;
       return Math.round(ctx.measureText(sample).width);
-    });
-    return baseline.join(",");
+    }).join(",");
   } catch {
     return "fonts-error";
   }
@@ -104,30 +138,34 @@ function fallbackHash(input: string): string {
   return (h1.toString(16) + h2.toString(16)).padStart(16, "0").repeat(4).slice(0, 64);
 }
 
+function isValidId(value: string | null): value is string {
+  return !!value && /^[0-9a-f]{64}$/.test(value);
+}
+
 let cached: string | null = null;
 
 export async function getHwid(): Promise<string> {
   if (cached) return cached;
 
-  const nav = navigator as Navigator & {
-    deviceMemory?: number;
-    hardwareConcurrency?: number;
-  };
+  const fromCookie = readCookie(COOKIE_NAME);
+  if (isValidId(fromCookie)) {
+    cached = fromCookie;
+    return cached;
+  }
 
+  const nav = navigator as Navigator & { deviceMemory?: number };
+
+  // Only time-stable signals. Deliberately excluded: browser version string,
+  // devicePixelRatio (changes with zoom), availWidth/Height (taskbar/window),
+  // timezone offset (DST), canvas pixel dump (driver/AA changes).
   const parts = [
-    nav.userAgent,
-    nav.language,
-    (nav.languages ?? []).join("-"),
-    nav.platform,
-    String(nav.hardwareConcurrency ?? 0),
+    platformSignature(),
+    (navigator.language || "").split("-")[0] ?? "",
+    String(navigator.hardwareConcurrency ?? 0),
     String(nav.deviceMemory ?? 0),
-    String(nav.maxTouchPoints ?? 0),
+    String(navigator.maxTouchPoints ?? 0),
     `${screen.width}x${screen.height}x${screen.colorDepth}`,
-    `${screen.availWidth}x${screen.availHeight}`,
-    String(window.devicePixelRatio),
-    String(new Date().getTimezoneOffset()),
     Intl.DateTimeFormat().resolvedOptions().timeZone ?? "tz?",
-    canvasSignature(),
     webglSignature(),
     fontSignature(),
   ];
@@ -138,6 +176,8 @@ export async function getHwid(): Promise<string> {
   } catch {
     cached = fallbackHash(raw);
   }
+
+  writeCookie(COOKIE_NAME, cached);
   return cached;
 }
 
